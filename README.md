@@ -14,7 +14,7 @@
 ## Results
 <img src="https://github.com/ParaliyzedEvo/counters/blob/master/.github/images/sonataoverlay%20by%20paraliyzed_evo1.png?raw=true" />
 
-[![CodeFactor](https://www.codefactor.io/repository/github/paraliyzedevo/evosoverlay/badge)](https://www.codefactor.io/repository/github/paraliyzedevo/sonotaoverlay)
+[![CodeFactor](https://www.codefactor.io/repository/github/paraliyzedevo/evosoverlay/badge)](https://www.codefactor.io/repository/github/paraliyzedevo/evosoverlay)
 [![Website](https://img.shields.io/badge/-Website-6a0dad?style=flat&logo=osu&logoColor=FFFFFF&labelColor=ff1493&color=6a0dad)](https://paraliyzed.net/)
 [![Donate](https://img.shields.io/badge/-Donate-FFDE21?style=flat&logo=paypal&logoColor=%23FFFFFF&labelColor=%2300c244&color=%2300c244)](https://paypal.me/Paraliyzedevo)
 
