@@ -153,11 +153,13 @@
 }
 
 #ranks {
+	width: 300px;
 	left: 100px;
 	text-align: left;
 }
 
 #countryRank {
+	width: 300px;
 	right: 100px;
 	text-align: right;
 }

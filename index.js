@@ -58,12 +58,12 @@ function calculate_od(temp) {
 function getMaxPxValue(x) {
     if (x < 10) return 75;
     if (x >= 10 && x < 100) return 90;
-    if (x >= 100 && x < 1000) return 105;
+    if (x >= 100 && x < 1000) return 100;
     if (x >= 1000 && x < 10000) return 125;
 }
 
 function getTranslateValue(x) {
-    if (x < 10) return 20;
+    if (x < 10) return 16;
     if (x >= 10 && x < 100) return 40;
     if (x >= 100 && x < 1000) return 60;
     if (x >= 1000 && x < 10000) return 95;
@@ -313,7 +313,7 @@ function renderSlots() {
             const translateCurrent = getTranslateValue(play.combo.current);
             const maxPx = getMaxPxValue(play.combo.max);
 
-            setStyle(combo_text2, 'transform', `translateX(-${translateCurrent + (isBreak ? 15 : 0)}px)`);
+            setStyle(combo_text2, 'transform', `translateX(-${translateCurrent + (isBreak ? 18 : 0)}px)`);
             setStyle(combo_text, 'transform', isBreak ? `translateX(-${maxPx - 20}px)` : `translateX(0)`);
             setStyle(combo_max, 'opacity', isBreak ? 1 : 0);
             setStyle(combo_x, 'display', isBreak ? 'none' : 'inline');
@@ -1037,7 +1037,7 @@ async function setupUser(name) {
     userData = {
       "id": `19637339`,
       "statistics": {
-        "global_rank": `${cache['GBrank'] > 0 ? cache['GBrank'] : cache['profile.globalRank']}`,
+        "global_rank": `${cache['GBrank'] > 0 ? cache['GBrank'] : spaceit(cache['profile.globalRank'])}`,
         "pp": `${cache['ppGB'] > 0 ? cache['ppGB'] : cache['profile.pp']}`,
         "country_rank": `${cache['CTrank']}`,
       },
@@ -1252,9 +1252,9 @@ function setRanks(userData) {
       setText(PlayerCR, `#0 ${userData.country_code}`);
     } else {
       setText(ranks, `#${spaceit(userData.statistics.global_rank)}`);
-      setText(PlayerGR, `#${userData.statistics.global_rank}`);
+      setText(PlayerGR, `#${spaceit(userData.statistics.global_rank)}`);
       setText(countryRank, `#${spaceit(userData.statistics.country_rank)}`);
-      setText(PlayerCR, `#${userData.statistics.country_rank} ${userData.country_code}`);
+      setText(PlayerCR, `#${spaceit(userData.statistics.country_rank)} ${userData.country_code}`);
     };
 };
 
