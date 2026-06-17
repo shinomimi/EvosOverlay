@@ -1,15 +1,19 @@
 .DebugBox {
+    background-color: #161616;
+    outline: 10px solid #161616;
+    border: 3px solid #ffffff;
+    border-radius: 10px;
     margin: 15px;
-    padding: 15px 35px 15px 20px;
+    padding: 10px;
     width: fit-content;
     height: fit-content;
-    background-color: #050819;
 }
-.DebugBorder {
-    width: 97%;
-    height: 95%;
-    border: 3px solid #a1c9ff;
-    padding: 10px;
+.DebugLine {
+    width: 100%;
+    height: 3px;
+    background-color: #ffffff;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 .DebugText {
     font-family: 'Stanley Moon';

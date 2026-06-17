@@ -47,7 +47,7 @@ let tempHitErrorArrayLength;
 let error_h300;
 let error_h100;
 
-let leaderboardFetch;
+let leaderboardFetch = false;
 let tempSlotLength;
 let tempMapScores = [];
 let playerPosition;
@@ -339,7 +339,7 @@ socket.commands(async (data) => {
       if (cache['HideGameStatus'] !== message['HideGameStatus']) {
         cache['HideGameStatus'] = message['HideGameStatus'];
         GameStatusOverlay.style.opacity = message['HideGameStatus'] ? '0' : '1';
-    }
+      }
 
       if (cache['HidePanel'] !== message['HidePanel']) {
         cache['HidePanel'] = message['HidePanel'];
@@ -452,6 +452,9 @@ socket.commands(async (data) => {
             HPGlow.style.backgroundColor = `hsl(${ColorResultLight})`;
     
             MiddleBar.style.backgroundColor = `hsl(${ColorResultLight})`;
+            recorderContainer.style.backgroundColor = `hsla(${ColorResultDark2 || ColorResultDark}, 0.9)`;
+            recorderContainer.style.color = `hsl(${ColorResultLight})`;
+            recorderContainer.style.borderColor = `hsl(${ColorResultLight})`;
     
             chartLighter.update();
             chartLighter2.update();
@@ -462,6 +465,64 @@ socket.commands(async (data) => {
       console.log(error);
     }
   });
+
+const slots = document.getElementById('slots');
+const CAPACITY = 28;
+const VISIBLE = 12;
+const history = new Array(CAPACITY).fill('');
+let writePos = 0;
+
+for (let i = 0; i < CAPACITY; i++) {
+  const div = document.createElement('div');
+  div.className = 'slot hidden';
+  slots.appendChild(div);
+}
+
+function pushJudgement(type = '300') {
+  const allowed = ['300', '100', '50', 'miss', '300g', '100k'];
+  if (!allowed.includes(String(type))) return;
+  history[writePos] = String(type);
+  writePos = (writePos + 1) % CAPACITY;
+  renderSlots();
+}
+
+function clearSlots() {
+  history.fill('');
+  writePos = 0;
+  for (let i = 0; i < CAPACITY; i++) {
+    const el = slots.children[i];
+    if (!el) continue;
+    el.dataset.judgement = '';
+    el.className = 'slot hidden';
+    el.style.opacity = 0;
+    el.classList.remove('hot');
+  }
+}
+
+function renderSlots() {
+  for (let i = 0; i < CAPACITY; i++) {
+    const el = slots.children[i];
+    const val = history[i];
+    if (!val) {
+      el.dataset.judgement = '';
+      el.className = 'slot hidden';
+      continue;
+    }
+    const distance = (writePos - 1 - i + CAPACITY) % CAPACITY;
+    el.dataset.judgement = val;
+    if (distance < VISIBLE) {
+      el.className = 'slot show';
+      el.style.opacity = 1 - (distance / VISIBLE);
+      if (distance === 0) {
+        el.classList.add('hot');
+        setTimeout(() => el.classList.remove('hot'), 140);
+      }
+    } else {
+      el.className = 'slot hidden';
+      el.style.opacity = 0;
+    }
+  }
+}
   
   socket.api_v2(({ state, settings, performance, resultsScreen, play, beatmap, folders, files, directPath, client, userProfile, game}) => {
     try {
@@ -503,6 +564,11 @@ socket.commands(async (data) => {
         if (cache['mode'] !== play.mode.name) {
             cache['mode'] = play.mode.name;
             global.style.backgroundImage = `url(./static/mode/${cache['mode']}.png)`;
+        }
+        if (cache['mode'] === 'mania') {
+            document.querySelector('#ColourBar').style.setProperty('--c-300', `#ffe97f`);
+        } else {
+            document.querySelector('#ColourBar').style.setProperty('--c-300', `#51ceff`);
         }
         if (cache['hp.normal'] !== play.healthBar.normal.toFixed(2)) {
             cache['hp.normal'] = play.healthBar.normal.toFixed(2);
@@ -605,6 +671,7 @@ socket.commands(async (data) => {
             cache['beatmap.stats.od.converted'] = beatmap.stats.od.converted;
             ODText.innerHTML = cache['beatmap.stats.od.converted'].toFixed(2);
             calculate_od(cache['beatmap.stats.od.converted']);
+            URbar.style.width = `${(error_h100 * 3.3) + 40}px`;
         }
         if (cache['beatmap.stats.hp.converted'] !== beatmap.stats.hp.converted) {
             cache['beatmap.stats.hp.converted'] = beatmap.stats.hp.converted;
@@ -912,6 +979,7 @@ socket.commands(async (data) => {
             leaderboard.style.opacity = 0;
             lbopCont.innerHTML = "";
             lbcpPosition.innerHTML = "";
+            clearSlots();
             if (document.getElementById("currentplayerCont")) {
                 document.getElementById("currentplayerCont").style.transform = `none`;
             }
@@ -1026,7 +1094,7 @@ socket.commands(async (data) => {
             progressSB.style.transform = `translateX(${progressbar}px)`;
         }
 
-        if (cache['beatmap.time.live'] >= cache['beatmap.time.firstObject'] + 5000 && cache['beatmap.time.live'] <= cache['beatmap.time.firstObject'] + 11900 && cache['data.menu.state'] === 2) {
+        if (cache['beatmap.time.live'] >= cache['beatmap.time.firstObject'] + 5000 && cache['beatmap.time.live'] <= cache['beatmap.time.firstObject'] + 11900 && cache['data.menu.state'] === 2 && !cache['HideGameStatus']) {
             recorderContainer.style.transform = 'scale(100%)';
             recorderContainer.style.opacity = '1';
         } else {
@@ -1401,7 +1469,7 @@ socket.commands(async (data) => {
       },
       {
         field: 'game',
-        keys: ['focused']
+        keys: ['focused', 'paused']
       },
       {
           field: 'folders',
@@ -1575,27 +1643,22 @@ socket.commands(async (data) => {
         PlayerCR.innerHTML = '#0';
     }
 
-    if (cache['ColorSet'] === `API`) {
-        if (userData.error === null || LocalNameData === cache['LocalNameData'] || LocalNameData === `Alayna` || userData.id === `Alayna`) {
-            avatarColor = {
-                "hsl1": [
-                    0.5277777777777778,
-                    0
-                ],
-                "hsl2": [
-                    0.5277777777777778,
-                    0
-                ]
-            }
+    if (cache['ColorSet'] === 'API') {
+        if (cache['CustomIDSet'] !== "" && cache['CustomIDColor']) {
+        avatarColor = await postCustomID(cache['CustomIDSet'].replace("/", "+"));
         } else {
-            avatarColor = await postUserID(userData.id);
+        avatarColor = userData.id !== `12351533`
+            ? await postUserID(userData.id)
+            : await postDefaultID(`${cache['server']}+${cache['profile.id']}`);
         }
 
         if (avatarColor) {
-            ColorData1 = `${avatarColor.hsl1[0] * 360}, ${avatarColor.hsl1[1] * 100}%, 50%`;
-            ColorData2 = `${avatarColor.hsl2[0] * 360}, ${avatarColor.hsl2[1] * 100}%, 75%`;
-            ColorResultLight = `${avatarColor.hsl1[0] * 360}, ${avatarColor.hsl2[1] * 100}%, 82%`;
-            ColorResultDark = `${avatarColor.hsl1[0] * 360}, ${avatarColor.hsl2[1] * 100}%, 6%`;
+            ColorData1 = `${avatarColor.HSLVibrant[0] * 360}, ${avatarColor.HSLVibrant[1] * 100}%, 50%`;
+            ColorData2 = `${avatarColor.HSLLightVibrant[0] * 360}, ${avatarColor.HSLLightVibrant[1] * 100}%, 50%`;
+            ColorResultLight = `${avatarColor.HSLVibrant[0] * 360}, ${avatarColor.HSLVibrant[1] * 100}%, 82%`;
+            ColorResultDark = `${avatarColor.HSLVibrant[0] * 360}, ${avatarColor.HSLVibrant[1] * 100}%, 6%`;
+            const ColorResultLight2 = `${avatarColor.HSLLightVibrant[0] * 360}, ${avatarColor.HSLLightVibrant[1] * 100}%, 82%`;
+            const ColorResultDark2 = `${avatarColor.HSLLightVibrant[0] * 360}, ${avatarColor.HSLLightVibrant[1] * 100}%, 6%`;
 
             document.querySelectorAll('.hpColor1').forEach(e => e.style.fill = `hsl(${ColorData1})`);
             document.querySelectorAll('.hpColor2').forEach(e => e.style.fill = `hsl(${ColorData2})`);
@@ -1646,6 +1709,9 @@ socket.commands(async (data) => {
             HPGlow.style.backgroundColor = `hsl(${ColorResultLight})`;
 
             MiddleBar.style.backgroundColor = `hsl(${ColorResultLight})`;
+            recorderContainer.style.backgroundColor = `hsla(${ColorResultDark2 || ColorResultDark}, 0.9)`;
+            recorderContainer.style.color = `hsl(${ColorResultLight})`;
+            recorderContainer.style.borderColor = `hsl(${ColorResultLight})`;
 
             chartLighter.update();
             chartLighter2.update();
