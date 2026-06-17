@@ -621,14 +621,25 @@ function renderSlots() {
             lbcpCombo.innerHTML = spaceit(cache['play.combo.max']) + `x`;
             combo_max.innerHTML = ` / ` + cache['play.combo.max'] + `x`;
         }
+        function refreshPP() {
+            const cur = cache['play.pp.current'];
+            const fc = cache['play.pp.fc'];
+            pp_txt.innerHTML = cur + ' ';
+            ppfc_txt.innerHTML = ` / ${fc}pp`;
+            lbcpPP.innerHTML = cur + `pp`;
+
+            const pp_tx = `${cur} / ${fc}pp`;
+            const widthMap = {7:136, 8:146, 9:166, 10:186, 11:206, 12:226, 13:256};
+            pp_box.style.width = (widthMap[pp_tx.length] ?? 155) + 'px';
+        }
+
         if (cache['play.pp.current'] !== play.pp.current.toFixed(0)) {
             cache['play.pp.current'] = play.pp.current.toFixed(0);
-            lbcpPP.innerHTML = cache['play.pp.current'] + `pp`;
-            pp_txt.innerHTML = cache['play.pp.current'];
+            refreshPP();
         }
         if (cache['play.pp.fc'] !== play.pp.fc.toFixed(0)) {
             cache['play.pp.fc'] = play.pp.fc.toFixed(0);
-            ppfc_txt.innerHTML = cache['play.pp.fc'];
+            refreshPP();
         }
         if (cache['unstableRate'] !== play.unstableRate) {
             cache['unstableRate'] = play.unstableRate;
@@ -937,8 +948,8 @@ function renderSlots() {
 
         mapBG.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, ${cachedim}), rgba(0, 0, 0, ${cachedim})), url("http://${window.socket.host}/files/beatmap/${Folder}/${Img}")`;
 
-        combo_wrapper.style.transform = `translateX(${cache['beatmap.stats.od.converted'] * 12.5}px)`;
-        pp_wrapper.style.transform = `translateX(-${cache['beatmap.stats.od.converted'] * 12.5}px)`;
+        combo_wrapper.style.transform = `translateX(${cache['beatmap.stats.od.converted'] * 12.5 - 97}px)`;
+        pp_wrapper.style.transform = `translateX(-${cache['beatmap.stats.od.converted'] * 12.5 - 97}px)`;
 
         if (cache['data.menu.state'] === 2 || cache['data.menu.state'] === 7) {
             if (!gptop || !gpbottom || !URCont || !leaderboard) return;
@@ -1123,75 +1134,28 @@ function renderSlots() {
           combo_x.style.display = 'inline';
         }
   
-        if (cache['play.combo.current'] < 10) { 
-          combo_box.style.width = `${84 + (isBreak ? getMaxPxValue(cache['play.combo.max']) : 0)}px`;
-        }
-        if (cache['play.combo.current'] >= 10 && cache['play.combo.current'] < 100) { 
-          combo_box.style.width = `${104 + (isBreak ? getMaxPxValue(cache['play.combo.max']) : 0)}px`;
-        }
-        if (cache['play.combo.current'] >= 100 && cache['play.combo.current'] < 1000) {
-          combo_box.style.width = `${124 + (isBreak ? getMaxPxValue(cache['play.combo.max']) : 0)}px`;
-        }
-        if (cache['play.combo.current'] >= 1000 && cache['play.combo.current'] < 10000) {
-          combo_box.style.width = `${159 + (isBreak ? getMaxPxValue(cache['play.combo.max']) : 0)}px`;
-        }
-        if (cache['play.combo.current'] >= 10000 && cache['play.combo.current'] < 1000) {
-          combo_box.style.width = `${179 + (isBreak ? getMaxPxValue(cache['play.combo.max']) : 0)}px`;
-        }
-  
         function getMaxPxValue(x) {
-          if (x < 10) return 75;
-          if (x >= 10 && x < 100) return 90;
-          if (x >= 100 && x < 1000) return 105;
-          if (x >= 1000 && x < 10000) return 125;
+          if (x < 10) return 50;
+          if (x >= 10 && x < 100) return 70;
+          if (x >= 100 && x < 1000) return 88;
+          if (x >= 1000 && x < 10000) return 108;
         }
-  
+
         function getTranslateValue(x) {
           if (x < 10) return 20;
           if (x >= 10 && x < 100) return 40;
           if (x >= 100 && x < 1000) return 60;
-          if (x >= 1000 && x < 10000) return 95;
+          if (x >= 1000 && x < 10000) return 90;
         }
+
+        let widthBase = 70;
+        if (cache['play.combo.current'] >= 10 && cache['play.combo.current'] < 100) widthBase = 90;
+        else if (cache['play.combo.current'] >= 100 && cache['play.combo.current'] < 1000) widthBase = 110;
+        else if (cache['play.combo.current'] >= 1000 && cache['play.combo.current'] < 10000) widthBase = 140;
+        else if (cache['play.combo.current'] >= 10000) widthBase = 160;
+        combo_box.style.width = `${widthBase + (isBreak ? getMaxPxValue(cache['play.combo.max']) : 0)}px`;
 
         let pp_tx = cache['play.pp.current'] + " / " + cache['play.pp.fc'] + "pp";
-
-        if (pp_tx.length === 7) {
-          pp_box.style.width = '155px';
-        }
-        if (pp_tx.length === 8) {
-          pp_box.style.width = '165px';
-        }
-        if (pp_tx.length === 9) {
-          pp_box.style.width = '195px';
-        }
-        if (pp_tx.length === 10) {
-          pp_box.style.width = '215px';
-        }
-        if (pp_tx.length === 11) {
-          pp_box.style.width = '235px';
-        }
-        if (pp_tx.length === 12) {
-          pp_box.style.width = '265px';
-        }
-        if (pp_tx.length === 13) {
-          pp_box.style.width = '295px';
-        }
-
-        if (cache['play.pp.current'] < 10) {
-            pp_txt.style.width = "25px";
-        }
-        if (cache['play.pp.current'] >= 10 && cache['play.pp.current'] < 100) {
-            pp_txt.style.width = "48px";
-        }
-        if (cache['play.pp.current'] >= 100 && cache['play.pp.current'] < 1000) {
-            pp_txt.style.width = "70px";
-        }
-        if (cache['play.pp.current'] >= 1000 && cache['play.pp.current'] < 10000) {
-            pp_txt.style.width = "105px";
-        }
-        if (cache['play.pp.current'] >= 10000 && cache['play.pp.current'] < 1000) {
-            pp_txt.style.width = "125px";
-        }
 
         if (cache['beatmap.time.live'] > beatmap.time.live) {
           delete cache['key-k1-press'];
