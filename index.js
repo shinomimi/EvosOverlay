@@ -554,6 +554,11 @@ function renderSlots() {
             cache['profileColor'] = userProfile.backgroundColour;
             setprofileColor(cache['profileColor']);
         }
+        if (!cache['URbar.init']) {
+            cache['URbar.init'] = true;
+            URbar.style.display = 'inline-flex';
+            ColourBar.style.display = 'none';
+        }
         if (cache['showInterface'] !== settings.interfaceVisible) {
             cache['showInterface'] = settings.interfaceVisible;
         }
