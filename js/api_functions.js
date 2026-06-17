@@ -238,8 +238,8 @@ export function postUserID() {
 
     if (!hex || hex.length !== 8) {
       return {
-        hsl1: [0.5277777777777778, 0],
-        hsl2: [0.5277777777777778, 0]
+        HSLVibrant: [0.5277777777777778, 0],
+        HSLLightVibrant: [0.5277777777777778, 0]
       };
     }
 
@@ -264,14 +264,14 @@ export function postUserID() {
     }
 
     return {
-      hsl1: [h, s],
-      hsl2: [h, s * 0.8]
+      HSLVibrant: [h, s],
+      HSLLightVibrant: [h, s * 0.8]
     };
   } catch (e) {
     console.error('Error getting profile color from tosu:', e);
     return {
-      hsl1: [0.5277777777777778, 0],
-      hsl2: [0.5277777777777778, 0]
+      HSLVibrant: [0.5277777777777778, 0],
+      HSLLightVibrant: [0.5277777777777778, 0]
     };
   }
 }
