@@ -76,6 +76,45 @@ function calculate_od(temp) {
     error_h50 = 199.5 - (10 * temp);
 }
 
+function applyModeLayout(mode, scoreMeterId) {
+    const isMania = mode === 'mania';
+    const isFruits = mode === 'fruits';
+    const isTaiko = mode === 'taiko';
+    const isOsu = mode === 'osu';
+
+    graphkatu.style.display = isMania ? 'block' : 'none';
+    katuCont.style.display = isMania ? 'block' : 'none';
+    h100Cont.style.borderRadius = isMania ? '0' : '10px 0 0 10px';
+    h0Cont.style.borderRadius = !isOsu ? '0 10px 10px 0' : '0';
+    hsbCont.style.display = !isOsu ? 'none' : 'block';
+    graphSB.style.display = !isOsu ? 'none' : 'block';
+    h50Cont.style.display = isFruits || isTaiko ? 'none' : 'block';
+    graph50.style.display = isFruits || isTaiko ? 'none' : 'block';
+    h0Cont.style.width = isFruits || isTaiko ? '190px' : '100px';
+    h100Cont.style.width = isFruits || isTaiko ? '190px' : '100px';
+    document.querySelector('.darker').style.opacity = isFruits || isMania ? 0 : 1;
+    document.querySelector('.darker2').style.opacity = isFruits || isMania ? 0 : 1;
+
+    if (isMania || isTaiko || isOsu) {
+        if (scoreMeterId === 'Colour') {
+            URbar.style.display = 'none';
+            ColourBar.style.display = 'flex';
+            URIndex.style.display = 'none';
+            URText.style.display = 'none';
+        } else {
+            URbar.style.display = 'inline-flex';
+            ColourBar.style.display = 'none';
+            URIndex.style.display = 'block';
+            URText.style.display = 'block';
+        }
+    } else {
+        URbar.style.display = 'none';
+        ColourBar.style.display = 'flex';
+        URIndex.style.display = 'none';
+        URText.style.display = 'none';
+    }
+}
+
 const spaceit = (text) => text.toLocaleString().replace(/,/g, ' ');
 
 const formatNumber = n => {
@@ -341,6 +380,16 @@ socket.commands(async (data) => {
         GameStatusOverlay.style.opacity = message['HideGameStatus'] ? '0' : '1';
       }
 
+      if (cache['StreamerModeEnabled'] !== message['StreamerModeEnabled']) {
+        cache['StreamerModeEnabled'] = message['StreamerModeEnabled'];
+        resultRecorder.style.opacity = message['StreamerModeEnabled'] ? '0' : '1';
+      }
+
+      if (cache['ScoreMeterID'] !== message['ScoreMeterID']) {
+        cache['ScoreMeterID'] = message['ScoreMeterID'];
+        applyModeLayout(cache['mode'], cache['ScoreMeterID']);
+      }
+
       if (cache['HidePanel'] !== message['HidePanel']) {
         cache['HidePanel'] = message['HidePanel'];
         if (message['HidePanel'] === true) {
@@ -569,6 +618,7 @@ function renderSlots() {
         if (cache['mode'] !== play.mode.name) {
             cache['mode'] = play.mode.name;
             global.style.backgroundImage = `url(./static/mode/${cache['mode']}.png)`;
+            applyModeLayout(cache['mode'], cache['ScoreMeterID']);
         }
         if (cache['mode'] === 'mania') {
             document.querySelector('#ColourBar').style.setProperty('--c-300', `#ffe97f`);

@@ -411,6 +411,9 @@
 .tickSBp {
 	background-color: #fff;
 }
+.tickkatup {
+	background-color: #51ceff;
+}
 #strainGraph {
 	position: relative;
 	bottom: 0;
@@ -736,4 +739,37 @@
 
 #recorderName {
 	font-size: 35px;
+}
+
+#graph100,
+#graph50,
+#graph0,
+#graphSB {
+	position: relative;
+	width: 380px;
+	height: 8px;
+	transition: ease 300ms;
+	overflow: hidden;
+}
+
+#graphkatu {
+	background-color: rgba(0, 25, 35, 0.8);
+}
+
+#graphkatu,
+#graph100,
+#graph50,
+#graph0,
+#graphSB {
+	position: relative;
+	width: 380px;
+	height: 8px;
+	transition: ease 300ms;
+	overflow: hidden;
+}
+
+#katuCont {
+	background-color: #278eb6;
+	box-shadow: 0 0 30px rgba(39, 142, 182);
+	border-radius: 10px 0 0 10px;
 }

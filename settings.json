@@ -16,6 +16,22 @@
         "value": ""
     },
     {
+        "uniqueID": "StreamerModeEnabled",
+        "type": "checkbox",
+        "title": "Hide Recorder",
+        "description": "Just in case tbh",
+        "options": "",
+        "value": false
+    },
+    {
+        "uniqueID": "HideGameStatus",
+        "type": "checkbox",
+        "title": "Hide Game Status?",
+        "description": "Just in case tbh",
+        "options": "",
+        "value": true
+    },
+    {
         "uniqueID": "Recorder",
         "type": "text",
         "title": "Recorder Name!",
@@ -54,6 +70,17 @@
         "description": "",
         "options": "",
         "value": false
+    },
+    {
+        "uniqueID": "ScoreMeterID",
+        "type": "options",
+        "title": "Score Meter Type",
+        "description": "",
+        "options": [
+            "Colour",
+            "Hiterror"
+        ],
+        "value": "Hiterror"
     },
     {
         "uniqueID": "Bar1",
