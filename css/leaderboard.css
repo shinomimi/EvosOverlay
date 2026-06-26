@@ -1,7 +1,7 @@
 #leaderboardP {
     position: absolute;
     bottom: 600px;
-    left: 5px;
+    left: 10px;
     z-index: 1;
     transition: ease 500ms;
     opacity: 0;
@@ -116,15 +116,14 @@
 }
 #lbcpLine {
     position: absolute;
-    left: -9px;
+    left: -13px;
     width: 7px;
     height: 40px;
-	border-radius: 10px;;
+	border-radius: 10px;
     background-color: #ffffff;
     transition: ease 300ms;
-    vertical-align: bottom;
-    display: flex;
-    flex-direction: column;
+    transform: translateY(15px);
+    align-self: flex-start;
     z-index: 2;
 }
 .lb_Mods {

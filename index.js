@@ -71,6 +71,14 @@ function getTranslateValue(x) {
 
 const spaceit = (text) => text.toLocaleString().replace(/,/g, ' ');
 
+const getLbcpLineTransform = (direction, height = 40) => {
+  const y = direction === 'down'
+    ? 15 - (height - 40)
+    : 15;
+
+  return `translateY(${y}px)`;
+};
+
 const setProgressTransforms = (px) => {
   setStyle(progress, 'width', `${px}px`);
   ['progress100', 'progress50', 'progress0', 'progressSB', 'progresskatu'].forEach(id => {
@@ -127,8 +135,10 @@ const applyInterfaceVisibility = (isVisible) => {
 let progressbar, rankingPanelSet, tickPos, tempAvg, tempSmooth, currentErrorValue, tempHitErrorArrayLength, error_h300, error_h100, error_h50, odwarping;
 let leaderboardFetch, leaderboardLocalSet, tempSlotLength, tempMapScores = [], playerPosition = 1, LocalNameData, LocalResultNameData;
 let linetimeout = null;
+let lbcpLineDir = null;
 let lbcpLineHeight = 40;
 let graphSmoothing = 0; 
+let OD = 0;
 
 window.onload = () => {
   ['darker', 'lighter', 'darker2', 'lighter2'].forEach(type => {
@@ -169,6 +179,7 @@ socket.commands((data) => {
       );
 
       updateCache('StreamerModeEnabled', message.StreamerModeEnabled, (enabled) => {setStyle(resultRecorder, 'opacity', enabled ? '0' : '1'); setStyle(recorderContainer, 'display', enabled ? 'none' : 'block')});
+      updateCache('HideGameStatus', message.HideGameStatus, (enabled) => {setStyle(GameStatusOverlay, 'opacity', enabled ? '0' : '1')});
       updateCache('LBEnabled', message.LBEnabled, (enabled) => {setStyle(leaderboardP, 'display', enabled ? 'block' : 'none')});
       updateCache('HidePanel', message.HidePanel);
       updateCache('HideBottom', message.HideBottom, (hidden) => {setStyle(gpbottom, 'display', hidden ? 'none' : 'flex')});
@@ -253,7 +264,7 @@ function renderSlots() {
   }
 }
   
-  socket.api_v2(({ state, settings, performance, resultsScreen, play, beatmap, folders, files, directPath, client, leaderboard, server, profile }) => {
+  socket.api_v2(({ state, settings, performance, resultsScreen, play, beatmap, folders, files, directPath, client, leaderboard, server, profile, game }) => {
     try {      
 
         updateCache('client', client, (val) => {
@@ -263,6 +274,14 @@ function renderSlots() {
           setHTML(m1Name, val === "lazer" ? `B3` : `M1`);
           setHTML(m2Name, val === "lazer" ? `B4` : `M2`);
         });
+
+        updateCache('paused', game.paused, (paused) => {setStyle(PlayPaused, 'opacity', (paused && state.number == 2 && !play.failed) && !cache["HideGameStatus"] ? `1` : `0`)});
+        updateCache('focused', game.focused, (focused) => {setStyle(PlayFocused, 'opacity', !focused && (state.number == 2 || state.number == 7 || game.paused && state.number == 2 || state.number == 0 || state.number == 22) && !cache["HideGameStatus"] ? `0` : `1`)});
+        updateCache('play.failed', play.failed, (failed) => {
+          if (failed && state.number === 2 && !cache["HideGameStatus"]) setStyle(PlayFailed, 'opacity', 1);
+          else setStyle(PlayFailed, 'opacity', 0);
+        });
+
         updateCache('profile.id', profile.id);
         updateCache('profile.name', profile.name);
         updateCache('profile.pp', profile.pp);
@@ -404,26 +423,19 @@ function renderSlots() {
 
         updateCache('beatmap.stats.ar.converted', beatmap.stats.ar.converted, (val) => {setText(ARText, val.toFixed(2))});
         updateCache('beatmap.stats.cs.converted', beatmap.stats.cs.converted, (val) => {setText(CSText, val.toFixed(2))});
-        updateCache('beatmap.stats.od.converted', beatmap.stats.od.converted, (val) => {setText(ODText, val.toFixed(2))});
-        updateCache('beatmap.stats.od.original', beatmap.stats.od.original);
+        updateCache('beatmap.stats.od.converted', beatmap.stats.od.converted, (val) => {
+          setText(ODText, val.toFixed(2)); 
+          OD = beatmap.stats.od.converted;
+          if (cache['play.mods.name'].includes("DT") || cache['play.mods.name'].includes("NC")) OD = 500 / 333 * beatmap.stats.od.converted + (-2210) / 333;
+          if (cache['play.mods.name'].includes("HT")) OD = 500 / 667 * beatmap.stats.od.converted + (-2210) / 667;
 
-        if (cache['play.mods.name'].includes("DT") || cache['play.mods.name'].includes("NC") && cache['play.mods.name'].includes("HR") && odConverted >= 10.04) odwarping = cache['beatmap.stats.od.converted'] / 1.11;
-        else if (cache['play.mods.name'].includes("DT") || cache['play.mods.name'].includes("NC") && cache['play.mods.name'].includes("HR")) odwarping = cache['beatmap.stats.od.original'] * 1.44;
-        else if (cache['play.mods.name'].includes("DT") || cache['play.mods.name'].includes("NC") && cache['play.mods.name'].includes("EZ")) odwarping = cache['beatmap.stats.od.original'] / 2.44;
-        else if (cache['play.mods.name'].includes("HT") && cache['play.mods.name'].includes("HR")) odwarping = cache['beatmap.stats.od.original'] * 1.44;
-        else if (cache['play.mods.name'].includes("HT") && cache['play.mods.name'].includes("EZ")) odwarping = cache['beatmap.stats.od.original'] / 2.44;
-        else if (cache['play.mods.name'].includes("DT") || cache['play.mods.name'].includes("NC")) odwarping = cache['beatmap.stats.od.original'];
-        else if (cache['play.mods.name'].includes("HT")) odwarping = cache['beatmap.stats.od.original'];
-        else if (cache['play.mods.name'].includes("HR")) odwarping = cache['beatmap.stats.od.converted'];
-        else if (cache['play.mods.name'].includes("EZ")) odwarping = cache['beatmap.stats.od.converted'];
-        else odwarping = cache['beatmap.stats.od.converted'];
+          calculate_od(OD, cache['mode']);
 
-        calculate_od(odwarping, cache['mode']);
-
-        setStyle(URbar, 'width', `${(error_h50 * 3.5) + 40}px`);
-        setStyle(l50, 'width', `${error_h50 * 3.5}px`);
-        setStyle(l100, 'width', `${error_h100 * 3.5}px`);
-        setStyle(l300, 'width', `${error_h300 * 3.5}px`);
+          setStyle(URbar, 'width', `${(error_h50 * 3.5) + 40}px`);
+          setStyle(l50, 'width', `${error_h50 * 3.5}px`);
+          setStyle(l100, 'width', `${error_h100 * 3.5}px`);
+          setStyle(l300, 'width', `${error_h300 * 3.5}px`);
+        });
 
         updateCache('beatmap.stats.hp.converted', beatmap.stats.hp.converted, (val) => {setText(HPText, val.toFixed(2))});
 
@@ -508,8 +520,6 @@ function renderSlots() {
         updateCache('resultsScreen.name', resultsScreen.name, (name) => {
             LocalResultNameData = cache['LocalName'] !== "" && cache['LocalName'] !== undefined ? cache['LocalName'] : cache['profile.name'];
             const display = name !== "" ? name : LocalResultNameData;
-            // can use setupuser here to load data first before map start (for replays)!
-            // setupUser(cache["OverridePlayerID"] !== "" && cache["OverridePlayerID"] !== undefined ? cache["OverridePlayerID"] : display);
             setText(PlayerName, display);
         });
 
@@ -617,7 +627,10 @@ function renderSlots() {
           setStyle(leaderboardP, 'opacity', 0);
           setHTML(lbcpPosition, "");
           setStyle(currentplayerCont, 'transform', `none`);
-          setStyle(lbcpLine, 'transform', `none`);
+          lbcpLineHeight = 40;
+          lbcpLineDir = null;
+          setStyle(lbcpLine, 'height', `40px`);
+          setStyle(lbcpLine, 'transform', getLbcpLineTransform('up'));
 
           delete cache[`key-k1-active`];
           delete cache[`key-k2-active`];
@@ -727,15 +740,16 @@ function renderSlots() {
               playerPosition--
               if (playerPosition < 8) {
               lbcpLineHeight += 64;
-              setStyle(lbcpLine, 'transition', `height 350ms ease`);
+              lbcpLineDir = 'up';
+              setStyle(lbcpLine, 'transition', `350ms ease`);
               setStyle(lbcpLine, 'height', `${lbcpLineHeight}px`);
-              setStyle(lbcpLine, 'top', `15px`);
-              setStyle(lbcpLine, 'bottom', ``);
+              setStyle(lbcpLine, 'transform', getLbcpLineTransform(lbcpLineDir, lbcpLineHeight));
               if (linetimeout) clearTimeout(linetimeout)
                 linetimeout = setTimeout(() => {
-                  setStyle(lbcpLine, 'transition', `height 200ms ease`);
+                  setStyle(lbcpLine, 'transition', `200ms ease`);
                   lbcpLineHeight = 40;
                   setStyle(lbcpLine, 'height', `40px`);
+                  setStyle(lbcpLine, 'transform', getLbcpLineTransform(lbcpLineDir));
                 }, 400);
               }
             }
@@ -743,15 +757,16 @@ function renderSlots() {
               playerPosition++
               if (playerPosition < 8) {
               lbcpLineHeight += 64;
-              setStyle(lbcpLine, 'transition', `height 350ms ease`);
+              lbcpLineDir = 'down';
+              setStyle(lbcpLine, 'transition', `350ms ease`);
               setStyle(lbcpLine, 'height', `${lbcpLineHeight}px`);
-              setStyle(lbcpLine, 'bottom', `15px`);
-              setStyle(lbcpLine, 'top', ``);
+              setStyle(lbcpLine, 'transform', getLbcpLineTransform(lbcpLineDir, lbcpLineHeight));
               if (linetimeout) clearTimeout(linetimeout)
                 linetimeout = setTimeout(() => {
-                  setStyle(lbcpLine, 'transition', `height 200ms ease`);
+                  setStyle(lbcpLine, 'transition', `200ms ease`);
                   lbcpLineHeight = 40;
                   setStyle(lbcpLine, 'height', `40px`);
+                  setStyle(lbcpLine, 'transform', getLbcpLineTransform(lbcpLineDir));
                 }, 400);
               }
             }
@@ -902,6 +917,7 @@ function renderSlots() {
         console.log(error);
     }
   }, [
+      'game',
       'server',
       'leaderboard',
       'client',

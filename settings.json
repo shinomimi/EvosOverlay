@@ -24,14 +24,6 @@
         "value": false
     },
     {
-        "uniqueID": "StreamerModeEnabled",
-        "type": "checkbox",
-        "title": "Hide Recorder",
-        "description": "Just in case tbh",
-        "options": "",
-        "value": false
-    },
-    {
         "uniqueID": "HideGameStatus",
         "type": "checkbox",
         "title": "Hide Game Status?",
